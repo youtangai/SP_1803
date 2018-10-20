@@ -135,6 +135,7 @@ class YOLO {
                         //print(rect)
                         //xはこれ
                         //print(CGFloat(x-w/2))
+                        //
                         
                         let prediction = Prediction(classIndex: detectedClass,
                                                     score: confidenceInClass,
