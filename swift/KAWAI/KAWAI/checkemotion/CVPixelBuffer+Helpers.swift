@@ -1,6 +1,7 @@
 import Foundation
 import Accelerate
 
+//ここが味噌
 func resizePixelBuffer(_ srcPixelBuffer: CVPixelBuffer,
                        cropX: Int,
                        cropY: Int,
