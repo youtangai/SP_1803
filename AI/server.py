@@ -6,9 +6,10 @@ from keras.models import load_model
 from keras.preprocessing import image
 import os
 
+
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
-app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 
 confThreshold = 0.5
 nmsThreshold = 0.4
@@ -48,17 +49,18 @@ def drawPred(conf, left, top, right, bottom, frame):
     tmp = {}
 
     dst = frame[top:bottom, left:right]
-    cv.imwrite('hoge' + '.jpg', dst)
+    cv.imwrite('huga' + '.jpg', dst)
 
-    new_image = load_image('hoge' + '.jpg')
+    new_image = load_image('huga' + '.jpg')
     pred = model.predict(new_image)
 
     for pre in pred:
         y = pre.argmax()
         tmp = {
-            categories[y]: [left, top, right, bottom]
+            'category': categories[y],
+            'probability': pre[y],
+            'coordinate': [left, top, right, bottom]
         }
-
     send_data.append(tmp)
 
 
@@ -96,20 +98,25 @@ def postprocess(frame, outs):
 
         drawPred(confidences[i], left, top, left + width, top + height, frame)
 
-@app.route('/')
+@app.route('/', methods=['POST'])
 def hello():
     del send_data[:]
-    # if 'uploadFile' not in request.files:
-    #     make_response(jsonify({'result': 'uploadFile is required.'}))
-    # file = request.files['uploadFile']
-
+    if 'image' not in request.files:
+        make_response(jsonify({'result': 'uploadFile is required.'}))
+    print('ready')
+    file = request.files['image']
+    print('file get')
+    filename = file.filename
+    print('name get')
+    file.save(filename)
+    print('save done')
     # Yoloを用いたネットワークの構築
-    im = cv.imread('person.jpg')
+    im = cv.imread(filename)
     blob = cv.dnn.blobFromImage(im, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
     net.setInput(blob)
     outs = net.forward(getOutputsNames(net))
     postprocess(im, outs)
-
+    print('done')
     return jsonify(result=send_data)
 
 
