@@ -1,3 +1,4 @@
+
 # coding: utf-8
 from flask import Flask, request, make_response, jsonify
 import cv2 as cv
@@ -45,8 +46,10 @@ def load_image(img_path, show=False):
 
 
 def drawPred(conf, left, top, right, bottom, frame):
+    print('start clasta')
     model = load_model("model.ep699.h5")
     tmp = {}
+    print('call clasta')
 
     dst = frame[top:bottom, left:right]
     cv.imwrite('huga' + '.jpg', dst)
@@ -69,7 +72,7 @@ def postprocess(frame, outs):
     frameWidth = frame.shape[1]
     confidences = []
     boxes = []
-
+    print('call postprocess')
     for out in outs:
         for detection in out:
             scores = detection[5:]
@@ -86,7 +89,7 @@ def postprocess(frame, outs):
                 boxes.append([left, top, width, height])
 
     indices = cv.dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThreshold)
-
+    print(indices)
     # Yoloで出力されるボックスの位置を出す
     for i in indices:
         i = i[0]
@@ -95,7 +98,6 @@ def postprocess(frame, outs):
         top = box[1]
         width = box[2]
         height = box[3]
-
         drawPred(confidences[i], left, top, left + width, top + height, frame)
 
 @app.route('/', methods=['POST'])
@@ -106,12 +108,13 @@ def hello():
     print('ready')
     file = request.files['image']
     print('file get')
-    filename = file.filename
+    filename = 'huge.png'
     print('name get')
     file.save(filename)
     print('save done')
     # Yoloを用いたネットワークの構築
     im = cv.imread(filename)
+    print('open')
     blob = cv.dnn.blobFromImage(im, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
     net.setInput(blob)
     outs = net.forward(getOutputsNames(net))
